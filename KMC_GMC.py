@@ -13,29 +13,24 @@ import Molecules
 import Reactor
 import time
 
-
+reactor = Reactor.Reactor()
 # ==============================================================================
 #             Setting up System variable such as Volume etc..
 # ==============================================================================
-start = time.time()  # stat time to calculate process time
+
+fr = open("KMC.log", "a")  # LOG OUTPUT
+
+fr.truncate(0)
 
 seed = 123456  # random seed
 
 iseed = 0  # Put 1 if you want the same seed (useful to test the code)
 
-t = 0  # Starting time
-
 t_final = 20  # Final time
-
-dt = 0  # step time
 
 Vol = 10**(-17)  # System Volume in L
 
-N_A = 6*10**(23)  # Avogadro's number
-
 totstep = 600000  # Final numbers of reactions
-
-nstep = 0  # Starting value of reactions step
 
 dump = 12000  # Dumps data into final dictionary every dump step.
 
@@ -44,28 +39,6 @@ ngroups = 300  # Longest polymer chain we're interested into
 matrixrows = 21  # Number of Monomer  to be included in the polymermatrix
 
 matrixcolumns = 21  # Number of Monomer  to be included in the polymermatrix
-
-polymermatrix = np.zeros(shape=(matrixrows, matrixcolumns))
-
-
-fr = open("KMC.log", "a")  # LOG OUTPUT
-fr.truncate(0)
-
-# Starting value for conversion
-
-GA_conversion = 0
-LA_conversion = 0
-MA_conversion = 0
-SA_conversion = 0
-PA_conversion = 0
-
-prob_i = np.zeros(25)  # List containing all the reaction probability
-
-reaction_i = []  # list containing all the possible couple of reaction
-
-Current_species = {}  # Dictionary containing all the species during simulation
-
-reactor = Reactor.Reactor()
 
 conc = {
         "GA": 0.5,
@@ -115,6 +88,57 @@ PA_rate_constant = {
     "PA": 2*1/(Vol*N_A)
     }
 
+
+# ==============================================================================
+# Variables and constants which do not need to be changed
+# ==============================================================================
+start = time.time() # start time to calculate process time
+
+t = 0  # Starting time
+
+dt = 0  # step time
+
+N_A = 6*10**(23)  # Avogadro's number
+
+nstep = 0  # Starting value of reactions step
+
+GA_conversion = 0
+
+LA_conversion = 0
+
+MA_conversion = 0
+
+SA_conversion = 0
+
+PA_conversion = 0
+#========================================================================================
+#                         ARRAY, DICTIONARY, LIST
+#========================================================================================
+
+reaction_i = []  # list containing all the possible couple of reaction
+
+Current_species = {}  # Dictionary containing all the species during simulation
+
+prob_i = np.zeros(25)  # List containing all the reaction probability
+
+FinalGroupData = {}  # Dict containing values for only ngroups chains at the end of the sim
+
+GroupData = {}  # Dict containing values for only ngroups chains at ith step
+
+Finaldata = {}  # Dict containing all the data
+
+Timestep = {}  # Dict containing ith step data
+
+# List which contains information for polymers of up to ngroups length
+Grouplength = list(range(2, ngroups+1))
+
+Grouplength.insert(0, "GA")
+
+Grouplength.insert(0, "Time")
+
+Grouplength.insert(0, "nstep")
+
+GroupDataFrame = pd.DataFrame(columns=Grouplength)
 # ==============================================================================
 #          Setting up the initial number of molecules and creating instances
 # ==============================================================================
@@ -166,19 +190,7 @@ reaction_i.append((PA, MA))
 reaction_i.append((PA, SA))
 reaction_i.append((PA, PA))
 
-# ==============================================================================
-# Setting Final data dictionary
-# ==============================================================================
-FinalGroupData = {}  # Dict containing values for only ngroups chains at the end of the sim
-GroupData = {}  # Dict containing values for only ngroups chains at ith step
-Finaldata = {}  # Dict containing all the data
-Timestep = {}  # Dict containing ith step data
-# List which contains information for polymers of up to ngroups length
-Grouplength = list(range(2, ngroups+1))
-Grouplength.insert(0, "GA")
-Grouplength.insert(0, "Time")
-Grouplength.insert(0, "nstep")
-GroupDataFrame = pd.DataFrame(columns=Grouplength)
+
 # ==============================================================================
 # STARTING WITH THE MAIN LOOP AND THE SIMULATIONS
 # ==============================================================================
@@ -187,13 +199,21 @@ if iseed == 1:
 
 
 while nstep < totstep:
+    
     reactant_array = []  # list of all the species in the simulations
+    
     finallength = []  # list of polymers chain lenght
+    
     finalmol = []  # number of molecules per polymeric chain
+    
     finalmoltype = []  # list of strings with polymer structure
+    
     finalmass = []  # list of strings with polymers mass
+    
     Groupmol = [0] * (ngroups-1)  # list of 0 as big as the longest polymer you want to study (from 2)
-    polymermatrix = np.zeros(shape=(matrixrows, matrixcolumns))
+    
+    polymermatrix = np.zeros(shape=(matrixrows, matrixcolumns)) # Matrix containing polymers
+    
     for key in Current_species.keys():
         if Current_species[key].nmol > 0:
             reactant_array.append(key)
@@ -293,13 +313,16 @@ while nstep < totstep:
 
     # selects time of the next reaction, index of the reaction that occurs
     dt, next_r = reactor.choose_t_r(totalprob, prob_i)
+    
     # Chooses what molecule type is reactiong (GA or LA or SA ..)
     molecule_searched_one, molecule_searched_two = reaction_i[next_r]
+    
     # Chooses which molecules react
     reactant_one, reactant_two = reactor.choose_which_molecule(reactant_array, molecule_searched_one, molecule_searched_two)
 
     # reaction occurs and updates the values
     product = reactor.react(reactant_one, reactant_two)
+    
     # updating dictionary of the species
     if product is not None:
         if product not in Current_species:
@@ -310,7 +333,8 @@ while nstep < totstep:
     # updating iterators
     t += dt
     nstep = nstep + 1
-    dumpval = int(nstep/dump)
+
+    
     # Updating Final Data Dictionary
     if (nstep % dump) == 0 or nstep == 1:
         for key in Current_species:
@@ -345,6 +369,7 @@ while nstep < totstep:
                 tmp2_chaintype = tmp2_chaintype[::-1]
                 tmp_dict = {"Type": tmp2_chaintype, "Number": tmp2_chainnumber}
                 df = pd.DataFrame(tmp_dict)
+                dumpval = int(nstep/dump)
                 df.to_csv(f"chain{i}_step{dumpval}" + ".csv")
             except:
                 pass
