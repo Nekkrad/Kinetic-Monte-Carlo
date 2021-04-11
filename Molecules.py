@@ -25,10 +25,10 @@ class Monomers(Molecules):
         self.chain_length = 1
 
     def __hash__(self):
-        return hash(str(self.molecule_type[0]))
+        return hash(self.molecule_type_string)
 
     def __eq__(self, other):
-        return (self.molecule_type) == (other.molecule_type)
+        return (self.molecule_type_string) == (other.molecule_type_string)
 
     def __ne__(self, other):
         # Not strictly necessary, but to avoid having both x==y and x!=y
@@ -87,7 +87,8 @@ class GA(Monomers):
 
     def __init__(self, nmol, rate_constant):
         self.nmol = nmol
-        self.molecule_type = "GA"
+        self.molecule_type = self
+        self.molecule_type_string = "GA"
         self.rate_constant = rate_constant
         self.is_chain = False  # True if is a polymer
         self.mass = 76.05
@@ -102,7 +103,8 @@ class LA(Monomers):
 
     def __init__(self, nmol, rate_constant):
         self.nmol = nmol
-        self.molecule_type = "LA"
+        self.molecule_type = self
+        self.molecule_type_string = "LA"
         self.rate_constant = rate_constant
         self.is_chain = False  # True if is a polymer
         self.mass = 90.08
@@ -117,7 +119,8 @@ class MA(Monomers):
 
     def __init__(self, nmol, rate_constant):
         self.nmol = nmol
-        self.molecule_type = [MA]
+        self.molecule_type = self
+        self.molecule_type_string = "MA"
         self.rate_constant = rate_constant
         self.is_chain = False  # True if is a polymer
         self.mass = 132.16
@@ -132,7 +135,8 @@ class SA(Monomers):
 
     def __init__(self, nmol, rate_constant):
         self.nmol = nmol
-        self.molecule_type = [SA]
+        self.molecule_type = self
+        self.molecule_type_string = "SA"
         self.rate_constant = rate_constant
         self.is_chain = False  # True if is a polymer
         self.mass = 150.2
@@ -147,7 +151,8 @@ class PA(Monomers):
 
     def __init__(self, nmol, rate_constant):
         self.nmol = nmol
-        self.molecule_type = [PA]
+        self.molecule_type = self
+        self.molecule_type_string = "PA"
         self.rate_constant = rate_constant
         self.is_chain = False  # True if is a polymer
         self.mass = 166.17

@@ -25,12 +25,12 @@ fr.truncate(0)
 seed = 123456  # random seed
 
 iseed = 0  # Put 1 if you want the same seed (useful to test the code)
-
+N_A = 6*10**(23)  # Avogadro's number
 t_final = 20  # Final time
 
 Vol = 10**(-17)  # System Volume in L
 
-totstep = 600000  # Final numbers of reactions
+totstep = 12000  # Final numbers of reactions
 
 dump = 12000  # Dumps data into final dictionary every dump step.
 
@@ -97,8 +97,6 @@ start = time.time() # start time to calculate process time
 t = 0  # Starting time
 
 dt = 0  # step time
-
-N_A = 6*10**(23)  # Avogadro's number
 
 nstep = 0  # Starting value of reactions step
 
