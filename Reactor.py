@@ -52,8 +52,8 @@ class Reactor:
         total_chain_length = molecule_a.chain_length + molecule_b.chain_length
         total_mass = molecule_a.mass + molecule_b.mass - 18
         new_type = molecule_b.get_new_type(molecule_a.molecule_type, molecule_b.molecule_type)
-        new_molecule_type_hash = str(molecule_a) + str(molecule_b)
-        new_molecule_type_string = str(molecule_a) + "-" + str(molecule_b)
+        new_molecule_type_hash = molecule_a.molecule_type_string + molecule_b.molecule_type_string
+        new_molecule_type_string = molecule_a.molecule_type_string + "-" + molecule_b.molecule_type_string
         return Molecules.Polymers(total_chain_length, new_type, total_mass,  new_molecule_type_hash, new_molecule_type_string, molecule_a.get_first_element(), molecule_b.get_last_element())
 
     def reaction_poly_mono(self, molecule_a, molecule_b):
@@ -64,8 +64,8 @@ class Reactor:
         total_chain_length = molecule_a.chain_length + 1
         total_mass = molecule_a.mass + molecule_b.mass - 18
         new_type = molecule_b.get_new_type(molecule_a.molecule_type, [molecule_b])
-        new_molecule_type_hash = str(molecule_a) + str(molecule_b)
-        new_molecule_type_string = str(molecule_a) + "-" + str(molecule_b)
+        new_molecule_type_hash = molecule_a.molecule_type_string + molecule_b.molecule_type_string
+        new_molecule_type_string = molecule_a.molecule_type_string + "-" + molecule_b.molecule_type_string
         return Molecules.Polymers(total_chain_length, new_type, total_mass, new_molecule_type_hash, new_molecule_type_string, molecule_a.get_first_element(), molecule_b)
 
     def reaction_mono_poly(self, molecule_a, molecule_b):
@@ -76,8 +76,8 @@ class Reactor:
         total_chain_length = molecule_b.chain_length + 1
         total_mass = molecule_a.mass + molecule_b.mass - 18
         new_type = molecule_b.get_new_type([molecule_a], molecule_b.molecule_type)
-        new_molecule_type_hash = str(molecule_a) + str(molecule_b)
-        new_molecule_type_string = str(molecule_a) + "-" + str(molecule_b)
+        new_molecule_type_hash = molecule_a.molecule_type_string + molecule_b.molecule_type_string
+        new_molecule_type_string = molecule_a.molecule_type_string + "-" + molecule_b.molecule_type_string
         return Molecules.Polymers(total_chain_length, new_type, total_mass, new_molecule_type_hash, new_molecule_type_string, molecule_a, molecule_b.get_last_element())
 
     def reaction_mono_mono(self, molecule_a, molecule_b):
@@ -89,8 +89,8 @@ class Reactor:
         total_chain_length = 2
         total_mass = molecule_a.mass + molecule_b.mass - 18
         new_type = [molecule_a, molecule_b]
-        new_molecule_type_hash = str(molecule_a) + str(molecule_b)
-        new_molecule_type_string = str(molecule_a) + "-" + str(molecule_b)
+        new_molecule_type_hash = molecule_a.molecule_type_string + molecule_b.molecule_type_string
+        new_molecule_type_string = molecule_a.molecule_type_string + "-" + molecule_b.molecule_type_string
         return Molecules.Polymers(total_chain_length, new_type, total_mass, new_molecule_type_hash, new_molecule_type_string, molecule_a, molecule_b)
 
     def choose_t_r(self, totalprob, prob_i):

@@ -42,6 +42,10 @@ matrixrows = 21  # Number of Monomer  to be included in the polymermatrix
 
 matrixcolumns = 21  # Number of Monomer  to be included in the polymermatrix
 
+# range of matrix values i want to study
+frm = 2 
+to = 41
+
 conc = {
         "GA": 0.5,
         "LA": 0.5,
@@ -99,8 +103,6 @@ start = time.time() # start time to calculate process time
 t = 0  # Starting time
 
 dt = 0  # step time
-
-N_A = 6*10**(23)  # Avogadro's number
 
 nstep = 0  # Starting value of reactions step
 
@@ -344,7 +346,7 @@ while nstep < totstep:
                 lengths1, num_mol1, mol_type1, mol_mass1, ave_mass1, ave_length1 = get_data(Current_species[key], lengths, num_mol, mol_type, mol_mass)
                 chains_data1 = get_chain(Current_species[key], ngroups, chains_data)
                 polymer_matrix = get_matrix(Current_species[key],matrixrows,matrixcolumns, GA, LA, polymermatrix)
-        
+                get_type_and_length(lengths1, num_mol1, mol_type1, frm, to)
         save_matrix(polymer_matrix, name = str(nstep/dump))
         chain_df = get_chain_dict(chains_data1, GA, t, nstep, GroupDataFrame)
     # Calculating Conversion

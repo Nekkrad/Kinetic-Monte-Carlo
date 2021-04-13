@@ -1,22 +1,16 @@
 import pandas as pd 
 import numpy as np
-#lengths = []
-#num_mol = []
-#mol_type = []
-#mol_mass = []
-#ave_mass = []
-#ave_length = []
-chains_data = []
+
 
 def get_data(molecule, lengths, num_mol, mol_type, mol_mass):
     ave_mass = 0
     ave_length = 0
-        lengths.append(molecule.chain_length)
-        num_mol.append(molecule.nmol)
-        mol_type.append(molecule.molecule_type_string)
-        mol_mass.append(molecule.mass)
-        ave_mass = np.average(mol_mass, weights=num_mol)
-        ave_length = np.average(lengths, weights=num_mol)
+    lengths.append(molecule.chain_length)
+    num_mol.append(molecule.nmol)
+    mol_type.append(molecule.molecule_type_string)
+    mol_mass.append(molecule.mass)
+    ave_mass = np.average(mol_mass, weights=num_mol)
+    ave_length = np.average(lengths, weights=num_mol)
     return lengths, num_mol, mol_type, mol_mass, ave_mass, ave_length
 
 def get_chain(molecule, chains, chains_data):
@@ -48,28 +42,28 @@ def save_matrix(polymermatrix, name):
     matrix.to_csv(name + '.csv')
     return
 
- #def get_type_and_length(molecule):
- #       tmp_chainlength = finallength
- #       tmp_chaintype = finalmoltype
- #       tmp_chainnumber = finalmol
- #       tmp_chainlength, tmp_chainnumber, tmp_chaintype = zip(*sorted(zip(tmp_chainlength, tmp_chainnumber, tmp_chaintype)))
- #       tmp_chainlength, tmp_chainnumber, tmp_chaintype = (list(t) for t in zip(*sorted(zip(tmp_chainlength, tmp_chainnumber, tmp_chaintype))))
- #       for i in range(2, 41):
- #           try:
- #               index1 = tmp_chainlength.index(i)
- #               index2 = len(tmp_chainlength) - tmp_chainlength[::-1].index(i)
- #               tmp2_chainnumber = tmp_chainnumber[index1:index2+1]
- #               tmp2_chaintype = tmp_chaintype[index1:index2+1]
- #               tmp2_chainnumber, tmp2_chaintype = zip(*sorted(zip(tmp2_chainnumber, tmp2_chaintype)))
- #               tmp2_chainnumber, tmp2_chaintype = (list(t) for t in zip(*sorted(zip(tmp2_chainnumber, tmp2_chaintype))))
-#              tmp2_chainnumber = tmp2_chainnumber[::-1]
-#                tmp2_chaintype = tmp2_chaintype[::-1]
-#                tmp_dict = {"Type": tmp2_chaintype, "Number": tmp2_chainnumber}
-#                df = pd.DataFrame(tmp_dict)
- #               dumpval = int(nstep/dump)
- #               df.to_csv(f"chain{i}_step{dumpval}" + ".csv")
- #           except:
-  #              pass
+def get_type_and_length(lengths, num_mol, mol_type, r1, r2):
+    tmp_chainlength = lengths
+    tmp_chaintype = mol_type
+    tmp_chainnumber = num_mol
+    tmp_chainlength, tmp_chainnumber, tmp_chaintype = zip(*sorted(zip(tmp_chainlength, tmp_chainnumber, tmp_chaintype)))
+    tmp_chainlength, tmp_chainnumber, tmp_chaintype = (list(t) for t in zip(*sorted(zip(tmp_chainlength, tmp_chainnumber, tmp_chaintype))))
+    for i in range(r1, r2):
+        try:
+            index1 = tmp_chainlength.index(i)
+            index2 = len(tmp_chainlength)-1 - tmp_chainlength[::-1].index(i)
+            tmp2_chainnumber = tmp_chainnumber[index1:index2+1]
+            tmp2_chaintype = tmp_chaintype[index1:index2+1]
+            tmp2_chainnumber, tmp2_chaintype = zip(*sorted(zip(tmp2_chainnumber, tmp2_chaintype)))
+            tmp2_chainnumber, tmp2_chaintype = (list(t) for t in zip(*sorted(zip(tmp2_chainnumber, tmp2_chaintype))))
+            tmp2_chainnumber = tmp2_chainnumber[::-1]
+            tmp2_chaintype = tmp2_chaintype[::-1]
+            tmp_dict = {"Type": tmp2_chaintype, "Number": tmp2_chainnumber}
+            df = pd.DataFrame(tmp_dict)
+            dumpval = int(nstep/dump)
+            df.to_csv(f"chain{i}_step{dumpval}" + ".csv")
+        except:
+            pass
         
         
         

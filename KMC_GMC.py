@@ -358,7 +358,10 @@ while nstep < totstep:
         for i in range(2, 41):
             try:
                 index1 = tmp_chainlength.index(i)
-                index2 = len(tmp_chainlength) - tmp_chainlength[::-1].index(i)
+                print(index1)
+                print(tmp_chainlength)
+                index2 = len(tmp_chainlength) - tmp_chainlength[::-1].index(i) -1
+                print(index2)
                 tmp2_chainnumber = tmp_chainnumber[index1:index2+1]
                 tmp2_chaintype = tmp_chaintype[index1:index2+1]
                 tmp2_chainnumber, tmp2_chaintype = zip(*sorted(zip(tmp2_chainnumber, tmp2_chaintype)))
