@@ -12,7 +12,7 @@ import pandas as pd
 import Molecules
 import Reactor
 import time
-
+from utils import *
 reactor = Reactor.Reactor()
 # ==============================================================================
 #             Setting up System variable such as Volume etc..
@@ -22,23 +22,29 @@ fr = open("KMC.log", "a")  # LOG OUTPUT
 
 fr.truncate(0)
 
+N_A = 6*10**(23)  # Avogadro's number
+
 seed = 123456  # random seed
 
 iseed = 0  # Put 1 if you want the same seed (useful to test the code)
-N_A = 6*10**(23)  # Avogadro's number
+
 t_final = 20  # Final time
 
 Vol = 10**(-17)  # System Volume in L
 
-totstep = 12000  # Final numbers of reactions
+totstep = 1000000  # Final numbers of reactions
 
-dump = 12000  # Dumps data into final dictionary every dump step.
+dump = 5000  # Dumps data into final dictionary every dump step.
 
 ngroups = 300  # Longest polymer chain we're interested into
 
 matrixrows = 21  # Number of Monomer  to be included in the polymermatrix
 
 matrixcolumns = 21  # Number of Monomer  to be included in the polymermatrix
+
+# range of matrix values i want to study
+frm = 2 
+to = 41
 
 conc = {
         "GA": 0.5,
@@ -119,11 +125,13 @@ Current_species = {}  # Dictionary containing all the species during simulation
 
 prob_i = np.zeros(25)  # List containing all the reaction probability
 
-FinalGroupData = {}  # Dict containing values for only ngroups chains at the end of the sim
+mw_list = []
+mn_list = []
+Total_chain_group_data = {}  # Dict containing values for only ngroups chains at the end of the sim
 
 GroupData = {}  # Dict containing values for only ngroups chains at ith step
 
-Finaldata = {}  # Dict containing all the data
+Complete_dataset = {}  # Dict containing all the data
 
 Timestep = {}  # Dict containing ith step data
 
@@ -200,15 +208,15 @@ while nstep < totstep:
     
     reactant_array = []  # list of all the species in the simulations
     
-    finallength = []  # list of polymers chain lenght
+    lengths = []  # list of polymers chain lenght
     
-    finalmol = []  # number of molecules per polymeric chain
+    num_mol = []  # number of molecules per polymeric chain
     
-    finalmoltype = []  # list of strings with polymer structure
+    mol_type = []  # list of strings with polymer structure
     
-    finalmass = []  # list of strings with polymers mass
+    mol_mass = []  # list of polymers mass
     
-    Groupmol = [0] * (ngroups-1)  # list of 0 as big as the longest polymer you want to study (from 2)
+    chains_data = [0] * (ngroups-1)  # list of 0 as big as the longest polymer you want to study (from 2)
     
     polymermatrix = np.zeros(shape=(matrixrows, matrixcolumns)) # Matrix containing polymers
     
@@ -335,51 +343,24 @@ while nstep < totstep:
     
     # Updating Final Data Dictionary
     if (nstep % dump) == 0 or nstep == 1:
+        total_mass = 0  # to calculate Mw and Mn
+        total_mass_squared = 0  # to calculate Mw and Mn
+        total_num = 0 # to calculate Mw and Mn
         for key in Current_species:
-            if Current_species[key].is_chain and Current_species[key].nmol != 0:
-                finallength.append(Current_species[key].chain_length)
-                finalmol.append(Current_species[key].nmol)
-                finalmoltype.append(Current_species[key].molecule_type_string)
-                finalmass.append(Current_species[key].mass)
-                averagemass = np.average(finalmass, weights=finalmol)
-                averagelength = np.average(finallength, weights=finalmol)
-                if Current_species[key].chain_length <= ngroups:
-                    Groupmol[Current_species[key].chain_length - 2] = Current_species[key].nmol
-                if Current_species[key].chain_length <= 40:
-                    m1num = Current_species[key].molecule_type.count(GA)
-                    m2num = Current_species[key].molecule_type.count(LA)
-                    if m1num <= 20 and m2num <= 20:
-                        polymermatrix[m1num][m2num] += Current_species[key].nmol
-        tmp_chainlength = finallength
-        tmp_chaintype = finalmoltype
-        tmp_chainnumber = finalmol
-        tmp_chainlength, tmp_chainnumber, tmp_chaintype = zip(*sorted(zip(tmp_chainlength, tmp_chainnumber, tmp_chaintype)))
-        tmp_chainlength, tmp_chainnumber, tmp_chaintype = (list(t) for t in zip(*sorted(zip(tmp_chainlength, tmp_chainnumber, tmp_chaintype))))
-        for i in range(2, 41):
-            try:
-                index1 = tmp_chainlength.index(i)
-                print(index1)
-                print(tmp_chainlength)
-                index2 = len(tmp_chainlength) - tmp_chainlength[::-1].index(i) -1
-                print(index2)
-                tmp2_chainnumber = tmp_chainnumber[index1:index2+1]
-                tmp2_chaintype = tmp_chaintype[index1:index2+1]
-                tmp2_chainnumber, tmp2_chaintype = zip(*sorted(zip(tmp2_chainnumber, tmp2_chaintype)))
-                tmp2_chainnumber, tmp2_chaintype = (list(t) for t in zip(*sorted(zip(tmp2_chainnumber, tmp2_chaintype))))
-                tmp2_chainnumber = tmp2_chainnumber[::-1]
-                tmp2_chaintype = tmp2_chaintype[::-1]
-                tmp_dict = {"Type": tmp2_chaintype, "Number": tmp2_chainnumber}
-                df = pd.DataFrame(tmp_dict)
-                dumpval = int(nstep/dump)
-                df.to_csv(f"chain{i}_step{dumpval}" + ".csv")
-            except:
-                pass
-        Groupmol.insert(0, GA.nmol)
-        Groupmol.insert(0, t)
-        Groupmol.insert(0, nstep)
-        G_series = pd.Series(Groupmol, index=GroupDataFrame.columns)
-        GroupDataFrame = GroupDataFrame.append(G_series, ignore_index=True)
-
+            if Current_species[key].is_chain and Current_species[key].nmol != 0: 
+                # get mass and number of mol
+                total_mass += Current_species[key].mass*Current_species[key].nmol
+                total_mass_squared += Current_species[key].mass**2 * Current_species[key].nmol
+                total_num += Current_species[key].nmol
+                lengths1, num_mol1, mol_type1, mol_mass1, ave_mass1, ave_length1 = get_data(Current_species[key], lengths, num_mol, mol_type, mol_mass)
+                chains_data1 = get_chain(Current_species[key], ngroups, chains_data)
+                polymer_matrix = get_matrix(Current_species[key],matrixrows,matrixcolumns, GA, LA, polymermatrix)
+                get_type_and_length(lengths1, num_mol1, mol_type1, frm, to, nstep, dump)
+        save_matrix(polymer_matrix, name = str(nstep/dump))
+        chain_df = get_chain_dict(chains_data1, GA, t, nstep, GroupDataFrame)
+        Mn,Mw = get_Mn_Mw(total_mass,total_num,total_mass_squared)
+        mw_list.append(Mw)
+        mn_list.append(Mn)
     # Calculating Conversion
         try:
             GA_conversion = GA.nmol/GA_in_mol
@@ -398,31 +379,30 @@ while nstep < totstep:
            # "MA": MA.nmol,
            # "SA": SA.nmol,
            # "PA": PA.nmol,
-           "Chain length": finallength,
-           "Chain number": finalmol,
-           # "Chain Type": len(finalmoltype),
-           "Chain Value": finalmoltype,
-           # "Chain Mass": finalmass,
-           # "Average Mass": averagemass,
-           # "Average Length": averagelength,
-           # "GA conversion": GA_conversion,
+           "Chain length": lengths1,
+           "Chain number": num_mol1,
+           "Chain Type": len(mol_type1),
+           "Chain Value": mol_type1,
+           "Chain Mass": mol_mass1,
+           "Average Mass": ave_mass1,
+           "Average Length": ave_length1,
+           "GA conversion": GA_conversion,
            # "LA conversion": LA_conversion,
            # "MA conversion": MA_conversion,
            # "SA conversion": SA_conversion,
            # "PA conversion": PA_conversion,
             }
-        name = str(nstep/dump)
-        Finaldata[f"Step {nstep}"] = Timestep
-        finaldataframe = pd.DataFrame.from_dict(Timestep)
-        finaldataframe.to_csv(f"Data_{dumpval}" + ".csv")
-        matrix = pd.DataFrame(polymermatrix)
-        matrix.to_csv(name + '.csv')
+        Complete_dataset[f"Step {nstep}"] = Timestep
+        inter_dataframe = pd.DataFrame.from_dict(Timestep)
+        inter_dataframe.to_csv(f"Data_{int(nstep/dump)}" + ".csv")
 
 
-# Creating Pandas Data frame and csv, json file
-finaldataframe = pd.DataFrame.from_dict(Finaldata, orient="index")
-finaldataframe.to_csv("Data.csv")
-GroupDataFrame.to_csv("Polymersgroup.csv", sep=' ', index=False)
+# Creating Pandas Data frame and csv
+Complete_datasetframe = pd.DataFrame.from_dict(Complete_dataset, orient="index")
+Complete_datasetframe.to_csv("Data.csv")
+chain_df.to_csv("Polymersgroup.csv", sep=' ', index=False)
+Mw_Mn_dataframe = pd.DataFrame(list(zip(mn_list,mw_list)), columns=["Mn","Mw"])
+Mw_Mn_dataframe.to_csv("Mw_Mn.csv",sep = " ")
 end = time.time()
 delta = (end - start)/60
 fr.write("The program run for :")
