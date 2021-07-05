@@ -3,6 +3,7 @@ import numpy as np
 
 
 def get_data(molecule, lengths, num_mol, mol_type, mol_mass):
+    """Return the length, num  of molecule, type and mass of a molecule"""
     ave_mass = 0
     ave_length = 0
     lengths.append(molecule.chain_length)
@@ -14,12 +15,14 @@ def get_data(molecule, lengths, num_mol, mol_type, mol_mass):
     return lengths, num_mol, mol_type, mol_mass, ave_mass, ave_length
 
 def get_chain(molecule, chains, chains_data):
+    """ Return a dictionary in which the key are the chainlength
+    and the value the number of molecules"""
     if molecule.chain_length <= chains:
         chains_data[molecule.chain_length - 2] = molecule.nmol
     return chains_data
  
 def get_chain_dict(chains_data, molecule, t, nstep, GroupDataFrame):
-
+    """ Return a dataframe containing the chains data"""
     chains_data.insert(0, molecule.nmol) 
     chains_data.insert(0, t) 
     chains_data.insert(0, nstep) 
@@ -28,6 +31,7 @@ def get_chain_dict(chains_data, molecule, t, nstep, GroupDataFrame):
     return GroupDataFrame
 
 def get_matrix(molecule,row,column, monomer1, monomer2, polymermatrix):
+    """ Matrix containing the monomer 1 and monomer 2 composition in a rowxcolumn polymer"""
     m1num = 0
     m2num = 0
     if molecule.chain_length <= (row + column):
@@ -38,11 +42,13 @@ def get_matrix(molecule,row,column, monomer1, monomer2, polymermatrix):
     return polymermatrix
 
 def save_matrix(polymermatrix, name):
+    """ Save the matrix of polymer composition"""
     matrix = pd.DataFrame(polymermatrix) 
     matrix.to_csv(name + '.csv')
     return
 
-def get_type_and_length(lengths, num_mol, mol_type, r1, r2):
+def get_type_and_length(lengths, num_mol, mol_type, r1, r2,nstep,dump):
+    """Save a csv file in which one column is the chain composition and the other is the number of molecules"""
     tmp_chainlength = lengths
     tmp_chaintype = mol_type
     tmp_chainnumber = num_mol
@@ -64,7 +70,12 @@ def get_type_and_length(lengths, num_mol, mol_type, r1, r2):
             df.to_csv(f"chain{i}_step{dumpval}" + ".csv")
         except:
             pass
-        
+    return
         
         
 
+def get_Mn_Mw(total_mass,total_num,total_mass_square):
+    Mn = total_mass/total_num
+    Mw = total_mass_square/total_mass
+
+    return Mn,Mw
